@@ -1,0 +1,41 @@
+{% extends "admin/base.html"  %}
+{% load staticfiles %}
+{% block content %}
+    <h1>Закладки</h1>
+    <section>
+        {% if user.is_authenticated %}
+        <p>Пользователь: {{ user }}</p>
+        <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <input type="submit" value="Добавить закладку" />
+        </form>
+        {% else %}
+        <p>Здравствуй, гость!</p>
+        <p>Чтоб иметь возможность видеть закладки и добавлять новые <a href="{% url 'admin:index' %}">Вам нужно авторизоваться</a>.</p>
+        <p>Спасибо!</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <ul>
+            {% for b in bookmarks %}
+                {% if b.is_parsed %}
+                    <li id="b-{{ b.pk }}"><img src="{{ b.favicon }}" alt="favicon"> <strong>{{ b.title }}</strong>
+                        <br><a href="{{ b.url }}">{{ b.url }}</a>
+                        {% if b.description %}
+                            <br>{{ b.description }}
+                            {% else %}
+                            <br><i>Без описания</i>
+                        {% endif %}
+                     </li>
+                {% else %}
+                    <li id="b-{{ b.pk }}"><i>{{ b.url }}</i></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}
+

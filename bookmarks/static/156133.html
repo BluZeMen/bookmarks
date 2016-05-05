@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta content='width=1024' name='viewport'>
+
+    
+
+    <title>Безопасность случайных чисел в Python / Блог компании Positive Technologies / Хабрахабр</title>
+
+      <meta name="description" content=" Эта статья – вторая в ряде публикаций, посвященных уязвимостям генераторов псевдослучайных чисел (ГПСЧ).
+
+В последнее время появился целый ряд публикаций, описывающих уязвимости ГПСЧ, начиная от..." />
+
+      <meta name="keywords" content="безопасность веб-приложений, python, случайные числа" />
+
+      <meta property="fb:app_id"      content="444736788986613" /> 
+<meta property="og:type"        content="article" /> 
+<meta property="og:url"         content="https://habrahabr.ru/company/pt/blog/156133/" /> 
+<meta property="og:title"       content="Безопасность случайных чисел в Python" />
+	<meta property="og:image"       content="https://habrastorage.org/storage2/5bd/3c1/119/5bd3c1119279870e5ecb11a0f7115af3.jpg" />
+	<link rel="image_src" href="https://habrastorage.org/storage2/5bd/3c1/119/5bd3c1119279870e5ecb11a0f7115af3.jpg" />
+	
+<meta property="og:description" content="Эта статья &ndash; вторая в ряде публикаций, посвященных уязвимостям генераторов псевдослучайных чисел (ГПСЧ).  В последнее время появился целый ряд публикаций,..." />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@habrahabr" />
+  <meta property="al:android:url" content="habrahabr://post/156133" />
+<meta property="al:android:app_name" content="Habrahabr" />
+<meta property="al:android:package" content="ru.habrahabr" />
+<meta property="al:windows_phone:url" content="habrahabr://post/156133" />
+<meta property="al:windows_phone:app_name" content="Habrahabr" />
+<meta property="al:windows_phone:app_id" content="460a6bd6-8955-470f-935e-9ea1726a6060" />
+  <link rel="canonical" href="https://habrahabr.ru/company/pt/blog/156133/"/>
+  <link rel="alternate" media="only screen and (max-width: 640px)" href="https://m.habrahabr.ru/company/pt/blog/156133/" >
+
+
+    <meta name='yandex-verification' content='71593b225aeafc4e' />
+    <meta name='referrer' content='origin' />
+
+      <link href="//habracdn.net/habr/styles/1462365892/_build/company_post_show_common.css" rel="stylesheet" media="all" />
+
+    <link href="//habracdn.net/habr/styles/1462365892/_build/global_main.css" rel="stylesheet" media="all" />
+
+    <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/assets/global_main.js"></script>
+      <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/assets/company_post_show_common.js"></script>
+
+
+    
+    
+
+    <meta name='yandex-verification' content='67d46b975fa41645' />
+    
+    <meta content='Хабрахабр' name='apple-mobile-web-app-title'>
+
+<link rel="apple-touch-icon-precomposed" sizes="57x57" href="/images/favicons/apple-touch-icon-57x57.png" />
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/favicons/apple-touch-icon-114x114.png" />
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/favicons/apple-touch-icon-72x72.png" />
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/favicons/apple-touch-icon-144x144.png" />
+<link rel="apple-touch-icon-precomposed" sizes="120x120" href="/images/favicons/apple-touch-icon-120x120.png" />
+<link rel="apple-touch-icon-precomposed" sizes="152x152" href="/images/favicons/apple-touch-icon-152x152.png" />
+<link rel="icon" type="image/png" href="/images/favicons/favicon-32x32.png" sizes="32x32" />
+<link rel="icon" type="image/png" href="/images/favicons/favicon-16x16.png" sizes="16x16" />
+<meta name="application-name" content="Хабрахабр"/>
+<meta name="msapplication-TileColor" content="#FFFFFF" />
+<meta name="msapplication-TileImage" content="mstile-144x144.png" />
+
+      
+      <script >
+        var N = 5;
+        var ar_duo1 = Math.floor(Math.random()*N+1);
+      </script>
+      <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/adriver.js"></script>
+
+    <link title="Хабрахабр / Блог компании Positive Technologies / Комментарии к публикации «Безопасность случайных чисел в Python»" type="application/rss+xml" rel="alternate" href="https://habrahabr.ru/rss/post/156133/"/>
+
+    <script src="//habracdn.net/habr/javascripts/1462365892/_parts/advertising.js"></script>
+
+<script type="text/javascript">
+
+  if (typeof adriver == 'undefined')
+  {
+    var adb1 = 'yes';
+  }
+
+  var user_type = "guest";
+
+  var page_type = "publish_corp";
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-726094-1',  'auto');
+  ga('create', 'UA-726094-24', 'auto', {'name': 'HGM'});
+
+  ga('require', 'displayfeatures');
+  ga('set', 'dimension1', user_type); // user type - guest/readonly/habrauser
+
+
+  ga('set', 'dimension4', adb1);
+
+  ga('set', 'dimension5', page_type);
+
+
+  if(typeof removeUtms === 'undefined') {
+    removeUtms = function(){};
+  }
+
+  ga('HGM.set', 'dimension1', user_type);
+  ga('HGM.set', 'dimension2', "habrahabr");
+  ga('HGM.send', 'pageview');
+
+  ga('send', 'pageview', { 'hitCallback': removeUtms });
+
+
+</script>
+
+
+    <script>
+  var adcm_config ={
+    id:1034,
+    platformId: 34,
+    
+    tags: ['hub_infosecurity', 'hub_webdev', 'g_network_security', 'g_programming'],
+    init: function () {
+      window.adcm.call();
+    }
+  };
+</script>
+<script src="https://tag.digitaltarget.ru/adcm.js" async></script>
+  </head>
+
+  <body>
+    <div class="layout_inner">
+      <div id="TMpanel">
+  <div class="container">
+    <div class="bmenu">
+      <a href="https://tmfeed.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo">TM Feed</a>
+      <a href="https://habrahabr.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo" class="current">Хабрахабр</a>
+      <a href="https://megamozg.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo">Мегамозг</a>
+      <a href="https://geektimes.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo">Geektimes</a>
+      <a href="https://toster.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo">Тостер</a>
+      <a href="https://moikrug.ru?utm_source=tm_habrahabr&utm_medium=tm_top_panel&utm_campaign=tm_promo">Мой круг</a>
+      <a href="https://freelansim.ru?utm_source=habrahabr&utm_medium=referral&utm_campaign=mainpage&utm_content=head_link">Фрилансим</a>
+    </div>
+  </div>
+</div>
+
+      <div id="layout">
+        <div id="navbar_overlay" class="hidden"></div>
+<div id="navbar">
+    <div class="nav_panel">
+        <a href="/" class="logo"></a>
+
+            <a href="/posts/" class="tab tab_menu" data-tab="menu_tab" title="Меню"><span class="g-icon g-icon-burger"></span></a>
+            <a href="https://habrahabr.ru/auth/login/" class="tab tab_login" id="login" title="Войти"><span class="g-icon g-icon-lock"></span></a>
+
+        <a href="#" class="scroll_to_up hidden scroll_to_up_for_guest" id="scroll_to_top" title="Наверх"></a>
+    </div>
+
+    <div class="nav_tabs_content ">
+        <div class="nav_tab hidden" id="menu_tab">
+            <div class="title">Разделы</div>
+            <form action="/search/" method="get" class="global_search_form">
+                <div>
+                    <input type="text" name="q" placeholder="Поиск" />
+                </div>
+            </form>
+            <div class="menu">
+                <a href="/posts/top/">Публикации</a>
+                <a href="/hubs/">Хабы</a>
+                <a href="/companies/">Компании</a>
+                <a href="/users/">Пользователи</a>
+                <a href="/sandbox/">Песочница</a>
+                <div class="line"></div>
+                <a href="https://toster.ru/?" class="new_window">Q&A</a>
+                <a href="https://moikrug.ru?utm_source=tm_habrahabr&utm_medium=tm_left_menu&utm_campaign=tm_promo" class="new_window">Вакансии</a>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
+
+        <div class="inner">
+
+          <script type="text/javascript">
+
+    $(document).on('click', '.adb-close', function(){
+        $('.lain_13_what_are_you_doing').animate({ 'height': 0 });
+
+        createCookie('adb-p', '1', 1);
+    });
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    $(document).ready(function(){
+        if (adb1 == 'yes' && !readCookie('adb-p'))
+        {
+            $('.lain_13_what_are_you_doing').show();
+        }
+    });
+</script>
+<div class="lain_13_what_are_you_doing" style="display: none;">
+    <div class="adb-text">
+        Привет, Хабрапользователь. Кажется, ты используешь AdBlock. Хабрахабр <br>
+        развивается и существует за счет доходов от рекламы. Добавь нас в исключения.
+    </div>
+    <a class="adb-btn" href="/adblock/">открытое письмо</a>
+    <a class="adb-btn" href="/adblock/?how=1">как отключить</a>
+    <div class="adb-close"></div>
+</div>
+
+
+
+          
+
+            
+  <div class="profile-header">
+
+  <div class=" profile-header__summary author-info author-info_profile" id="company_1321">
+      <a href="/company/pt/" class="author-info__image">
+          <img src="//habrastorage.org/getpro/habr/companies/102/6dd/6ab/1026dd6ab1af8036831ea7112cd9154d.jpg" class="author-info__image-pic"/>
+      </a>
+
+      <div class="author-info__desc">
+        <div class="author-info__username">
+          <a href="/company/pt/" class="author-info__name">Positive Technologies</a>
+        </div>
+
+        <div class="author-info__specialization">
+            Компания
+        </div>
+      </div>
+
+  </div>
+
+  <div class="profile-header__stats">
+    <div class="user-rating">
+      <div class="user-rating__value">529,14</div>
+      <div class="user-rating__label" title="Хабраиндекс - абстрактный показатель популярности компании на Хабрахабре">рейтинг</div>
+    </div>
+  </div>
+
+</div>
+  <div class="column-wrapper">
+    <div class="content_left">
+        <div class="tabs">
+    <ul class="tabs-menu tabs-menu_habrahabr">
+          <li class="tabs-menu__item tabs-menu__item_company-profile tabs-menu__item_inline">
+            <a href="https://habrahabr.ru/company/pt/profile/" class="tab-item tab-item_stacked "  >
+              <span class="tab-item__value stats">
+                <span class="stats__counters stats__counters_big">
+                  <strong class="counter"></strong>
+                </span>
+                <span class="stats__value">Профиль</span>
+            </a>
+          </li>
+          <li class="tabs-menu__item tabs-menu__item_company-profile tabs-menu__item_inline">
+            <a href="https://habrahabr.ru/company/pt/blog/" class="tab-item tab-item_stacked tab-item_current"  >
+              <span class="tab-item__value stats">
+                <span class="stats__counters stats__counters_big">
+                  <strong class="counter">308</strong>
+                </span>
+                <span class="stats__value">Блог</span>
+            </a>
+          </li>
+          <li class="tabs-menu__item tabs-menu__item_company-profile tabs-menu__item_inline">
+            <a href="https://habrahabr.ru/company/pt/vacancies/" class="tab-item tab-item_stacked "  >
+              <span class="tab-item__value stats">
+                <span class="stats__counters stats__counters_big">
+                  <strong class="counter">0</strong>
+                </span>
+                <span class="stats__value">Вакансии</span>
+            </a>
+          </li>
+          <li class="tabs-menu__item tabs-menu__item_company-profile tabs-menu__item_inline">
+            <a href="https://habrahabr.ru/company/pt/fans/" class="tab-item tab-item_stacked "  >
+              <span class="tab-item__value stats">
+                <span class="stats__counters stats__counters_big">
+                  <strong class="counter">2k</strong>
+                </span>
+                <span class="stats__value">Подписчики</span>
+            </a>
+          </li>
+    </ul>
+
+  </div>
+
+      <div class="company_post">
+        
+
+  <div class="post shortcuts_item" id="post_156133">
+    <div class="published">25 октября 2012 в 16:08</div>
+    <h1 class="title">
+      
+
+        <span class="post_title">Безопасность случайных чисел в Python</span>
+
+      <span class="flag flag_tutorial" title="Обучающий материал">tutorial</span>
+
+      
+
+    </h1>
+
+      <div class="hubs">
+      <a href="https://habrahabr.ru/hub/infosecurity/" class="hub " title="Вы не подписаны на этот хаб" >Информационная безопасность</a><span class="profiled_hub" title="Профильный хаб">*</span>, 
+      <a href="https://habrahabr.ru/hub/webdev/" class="hub " title="Вы не подписаны на этот хаб" >Разработка веб-сайтов</a><span class="profiled_hub" title="Профильный хаб">*</span>, 
+      <a href="https://habrahabr.ru/company/pt/" class="hub " title="Вы не подписаны на этот хаб" >Блог компании Positive Technologies</a>
+  </div>
+
+
+    <div class="content html_format">
+      <img src="https://habrastorage.org/storage2/5bd/3c1/119/5bd3c1119279870e5ecb11a0f7115af3.jpg" align="left"/> Эта статья – вторая в ряде публикаций, посвященных уязвимостям генераторов псевдослучайных чисел (ГПСЧ).<br/>
+<br/>
+В последнее время появился целый ряд публикаций, описывающих уязвимости ГПСЧ, начиная от самых основ ([1]) и заканчивая непосредственно уязвимостями в различных языках программирования и реализованных на их основе CMS и другого ПО ([2],[3],[4]).<br/>
+<br/>
+Эти публикации популярны по той причине, что ГПСЧ – основа многих аспектов безопасности веб-приложений. Псевдослучайные числа/последовательности символов используются для обеспечения безопасности веб-приложений в:<br/>
+<br/>
+<ul>
+<li> генерации различных токенов (CSRF, токены сброса пароля и т.д.);</li>
+<li> генерации случайных паролей;</li>
+<li> генерации текста в CAPTCHA;</li>
+<li> генерации идентификаторов сессий.</li>
+</ul><br/>
+В <a href="http://blog.ptsecurity.ru/2012/08/take-two.html">прошлой статье</a> мы, опираясь на исследования <i>George Argyros</i> и <i>Aggelos Kiayias</i> ([3]) научились предугадывать случайные числа в PHP на основе <b>PHPSESSID</b> и уменьшать различными способами энтропию псевдослучайных чисел.<br/>
+<br/>
+Сейчас мы рассмотрим ГПСЧ в веб-приложениях, разработанных на языке Python.<a name="habracut"></a><br/>
+<br/>
+<h4>Особенности ГПСЧ языка Python</h4><br/>
+В Python существует три модуля, предназначенных для генерации случайных/псевдослучайных чисел: <b>random</b>, <b>urandom</b> и <b>_random</b>:<br/>
+ <br/>
+<ul>
+<li> _random реализует алгоритм <i>Mersenne Twister</i> (MT) (<b>[6],[7]</b>) с небольшими изменениями на языке C;</li>
+<li> urandom использует внешние источники энтропии (криптопровайдер Windows в функции CryptGenRandom) на языке C;</li>
+<li>random является оболочкой для модуля _random на Python, совмещающей обе библиотеки и имеющей две основных функции для генерации псевдослучайных чисел: random() и SystemRandom().</li>
+</ul><br/>
+<h5>RANDOM()</h5><br/>
+Первая использует алгоритм MT (модуль <b>_random</b>), однако прежде всего пытается инициализировать его с помощью <b>SEED</b>, взятого из <b>urandom</b>, что превращает ГПСЧ в ГСЧ (генератор случайных чисел). Если вызвать <b>urandom </b>не удается (например, отсутствует <b>/dev/urandom</b> или не удается вызвать нужную функцию из библиотеки <b>advapi32.dll</b>), то в качестве <b>SEED </b>используется <i>int(time.time() * 256)</i> (что, как вы уже знаете, обеспечивает недостаточную энтропию).<br/>
+<br/>
+<h5>SYSTEMRANDOM()</h5><br/>
+<b>SystemRandom()</b> вызывает модуль <b>urandom</b>, который использует внешние источники для генерации случайных данных.<br/>
+<br/>
+Изменения в реализации алгоритма MT заключается в том, что вместо одного числа, основанного на одном из 624 чисел из текущего состояния ГПСЧ (<i>state</i>), используются два числа:<br/>
+<br/>
+<pre><code class="python">random_random()
+{
+    unsigned long a=genrand_int32(self)&gt;&gt;5, b=genrand_int32(self)&gt;&gt;6;
+    return PyFloat_FromDouble((a*67108864.0+b)*(1.0/9007199254740992.0));
+}
+</code></pre><br/>
+Так же, в отличие от PHP, инициализировать генератор можно не только с помощью <i>long-</i>переменной, но и с помощью любой последовательности байт (происходит вызов <i>init_by_array())</i>, что и происходит при импорте модуля random с помощью внешнего источника энтропии (берется 32 байта из <b>urandom</b>), а в случае, когда это не удается, используется <i>time()</i>:<br/>
+<br/>
+<pre><code class="python">if a is None: try:
+                a = int.from_bytes(_urandom(32), 'big')
+            except NotImplementedError:
+                import time
+a = int(time.time() * 256)
+</code></pre> <br/>
+<h4>Защита</h4><br/>
+Казалось бы, данные изменения, в отличие от PHP, обеспечивают достаточную энтропию генератора даже при вызове <b>random.random()</b>. Но не все так «плохо».<br/>
+<br/>
+Особенностью фреймворков под Python является то, что в отличие от PHP, Python запускается один раз вместе с веб-сервером, а значит, инициализация состояния по умолчанию происходит один раз при выполнении команды <b>import random</b> или при принудительном вызове <b>random.seed()</b> (это крайне редкий случай для веб-приложений), что позволяет провести атаку на состояния MT по следующему алгоритму:<br/>
+<br/>
+<ul>
+<li>находим сценарий, который выводит значение <b>random.random()</b> (например, в Plone этим занимается логер ошибок (файл <b>SiteErrorLog.py</b>), он выводит на страницу &quot;<i>ошибка с номером *** зафиксирована</i>&quot;, где отражается случайное число);</li>
+<li>выполняем последовательно серию запросов, где фиксируем случайные числа. Номера запросов: <b>1,2,199,200,511,625</b>;</li>
+<li><b>313</b>-м запросом мы совершаем предугадываемое действие (например, генерацию ссылки на сброс пароля);</li>
+<li>на основе запросов <b>1,199</b> мы определяем состояния <b>state_1[1], state_1[2], state_1[397]</b>;</li>
+<li>на основе запросов <b>2,200</b> – состояния <b>state_1[3], state_1[398]</b>;</li>
+<li>на основе запроса <b>511 </b>– <b>state_2[397]</b>;</li>
+<li> на основе запроса <b>625</b> – <b>state_3[1]</b>.</li>
+</ul><br/>
+Точность определения состояний зависит от индекса элемента состояния (<b>i</b>): для <i>i mod 2=0</i> энтропия составляет <b>2^6</b>, для <i>i mod 2 = 1 –</i> <b>2^5</b>.<br/>
+<br/>
+Далее с помощью запросов <b>1,2,199,200</b> можно определить состояния <b>state_1[1]</b>, <b>state_1[2]</b>, <b>state_1[3]</b>, <b>state_1[397]</b>, <b>state_1[398]</b>, на основе которых генерируются состояния <b>state_2[1]</b> и <b>state_2[2]</b>, из которых и получается случайное число запроса<b> №313</b>. Однако, энтропия этого числа составляет <b>2^24 (16M)</b>. Энтропия сокращается с помощью запросов <b>511</b> и <b>625</b>. Эти запросы помогают вычислить состояния <b>state_2[397]</b>, <b>state_3[1]</b>. Это уменьшает количество вариантов состояний до <b>2^8</b>, т.е. существует всего <b>256</b> вариантов «случайного» числа, используемого в запросе <b>№313</b>.<br/>
+<br/>
+Необходимым условием выполнения атаки является то, что никто не вклинится в процессе запросов, тем самым не повлияв на смену состояния ГПСЧ (другими словами, что индексы состояний будут определены правильно). Также необходимо чтобы запрос <b>№1</b> использовал элементы состояния ГПСЧ с индексами не больше <b>224</b>, иначе запрос <b>№200</b> будет использовать другое состояние генератора, что не позволит выполнить ангоритм. Вероятность этого события составляет <b>36%</b>.<br/>
+<br/>
+Поэтому дополнительная задача запроса <b>№625</b> – определить, что все предыдущие запросы действительно производились в нужных состояниях и никто не вклинился в процесс запросов.<br/>
+<br/>
+В дополнение предлагаем вашему вниманию <a href="http://www.ptsecurity.ru/download/brute.py">сценарий</a>, который получает на вход случайные числа 6-ти запросов. На выходе формируются все возможные случайные числа запроса <b>№313</b>.<br/>
+<br/>
+<h4>Практическое применение</h4><br/>
+Мы проанализировали несколько фреймворков и веб-приложений на языке Python (среди них Plone и Django). К сожалению, (а может быть и к счастью) найти среди них уязвимые не удалось.<br/>
+<br/>
+Самым вероятным претендентом является Plone, так как в нем есть вывод случайного числа (<b>SiteErrorLog.py</b>) но проблема атаки на него в следующем. <b>Plone </b>работает под <i>Python 2.7.*</i>, который при выводе <i>float </i>в <i>str()</i> обрезает последние 5 цифр, что расширяет количество перебираемых вариантов (и при локальном переборе, и при внешних запросах к серверу) до очень больших чисел.<br/>
+<br/>
+Python третьей ветки не обрезает <i>float </i>в функции <i>st()r</i>, что делает приложения на нем главными претендентами для проведения атак.<br/>
+<br/>
+Мы предлагаем вашему вниманию <a href="http://www.ptsecurity.ru/download/brute.py">сценарий</a>, который получает на входе 6 случайных чисел (проинициализированных состоянием с нужными индексами, например, из тестового сценария vuln.py), а на выходе генерирует возможные варианты подбираемого случайного числа. Время работы этого сценария на среднестатистическом компьютере – около часа.<br/>
+<br/>
+<i>Примечание: данный сценарий не учитывает возможную погрешность определения элемента состояния для (i mod 2 = 1), поэтому эффективность снижается с 36% до 18%.</i><br/>
+<br/>
+<h4>Заключение</h4><br/>
+Особенности выполнения кода фреймворков на Python (на стороне веб-сервера) позволяют злоумышленнику проводить атаки, невозможные или очень труднореализуемые в языке PHP. Для защиты ГПСЧ необходимо соблюдать простые правила:<br/>
+<br/>
+<ul>
+<li>использовать модуль urandom или функцию random.SystemRandom();</li>
+<li>проводить инициализацию с помощью <b>random.seed()</b> перед каждым вызовом <b>random.random()</b> c достаточной энтропией <b>SEED </b>(если модуль <b>urandom</b> недоступен, то используйте, например, значение функции <b>md5(time.time()*(int)salt1+str(salt2))</b>, где <b>salt1</b> и <b>salt2</b> инициализируются в процессе установки веб-приложения);</li>
+<li>ограничить вывод случайных чисел в своем веб-приложении (достаточно использовать хеш-функции, типа <b>md5</b>).</li>
+</ul><br/>
+<h4>Ссылки</h4><br/>
+[1] <a href="http://habrahabr.ru/post/151187/">http://habrahabr.ru/post/151187/ </a><br/>
+[2] <a href="http://jazzy.id.au/default/2010/09/20/cracking_random_number_generators_part_1.html">http://jazzy.id.au/default/2010/09/20/cracking_random_number_generators_part_1.html</a> <br/>
+[3] <a href="http://crypto.di.uoa.gr/CRYPTO.SEC/Randomness_Attacks_files/paper.pdf">http://crypto.di.uoa.gr/CRYPTO.SEC/Randomness_Attacks_files/paper.pdf</a> <br/>
+[4] <a href="http://www.slideshare.net/d0znpp/dcg7812-cryptographyinwebapps-14052863">http://www.slideshare.net/d0znpp/dcg7812-cryptographyinwebapps-14052863</a> <br/>
+[5] <a href="http://media.blackhat.com/bh-us-10/presentations/Kamkar/BlackHat-USA-2010-Kamkar-How-I-Met-Your-Girlfriend-slides.pdf">http://media.blackhat.com/bh-us-10/presentations/Kamkar/BlackHat-USA-2010-Kamkar-How-I-Met-Your-Girlfriend-slides.pdf</a> <br/>
+[6] <a href="http://en.wikipedia.org/wiki/Mersenne_twister">http://en.wikipedia.org/wiki/Mersenne_twister</a> <br/>
+[7] <a href="http://jazzy.id.au/default/2010/09/22/cracking_random_number_generators_part_3.html">http://jazzy.id.au/default/2010/09/22/cracking_random_number_generators_part_3.html</a><br/>
+<br/>
+Автор: Юнусов Тимур.
+
+      
+      <div class="clear"></div>
+    </div>
+
+    
+  <ul class="tags icon_tag">
+      <li ><a href="https://habrahabr.ru/search/?q=%5B%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C%20%D0%B2%D0%B5%D0%B1-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B9%5D&target_type=posts" rel="tag">безопасность веб-приложений</a>, </li>
+      <li ><a href="https://habrahabr.ru/search/?q=%5Bpython%5D&target_type=posts" rel="tag">python</a>, </li>
+      <li ><a href="https://habrahabr.ru/search/?q=%5B%D1%81%D0%BB%D1%83%D1%87%D0%B0%D0%B9%D0%BD%D1%8B%D0%B5%20%D1%87%D0%B8%D1%81%D0%BB%D0%B0%5D&target_type=posts" rel="tag">случайные числа</a></li>
+  </ul>
+
+
+      <div class="infopanel_wrapper js-user_">
+    <ul class="postinfo-panel postinfo-panel_post" id="infopanel_post_156133">
+
+          <li class="postinfo-panel__item">
+            <div class="voting-wjt voting-wjt_infopanel js-voting  ">
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи.">
+                  <span>&uarr;</span>
+                </button>
+
+              <div class="voting-wjt__counter voting-wjt__counter_positive  js-mark">
+                  <span class="voting-wjt__counter-score js-score" title="Общий рейтинг 64: &uarr;57 и &darr;7">+50</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи.">
+                  <span>&darr;</span>
+                </button>
+
+            </div>
+          </li>
+
+      <li class="postinfo-panel__item">
+        <div class="views-count_post" title="Просмотры публикации">17,4k</div>
+      </li>
+
+      <li class="postinfo-panel__item">
+        <div class="favorite-wjt favorite">
+            <button type="button" disabled class="favorite-wjt__button favorite-wjt__button_disabled" onclick="return false;" title="Только зарегистрированные пользователи могут добавлять публикации в избранное">
+              <span>Добавить в избранное</span>
+            </button>
+          <span class="favorite-wjt__counter js-favs_count" title="Количество пользователей, добавивших публикацию в избранное">137</span>
+        </div>
+      </li>
+
+
+
+
+      <!-- шеринг в соцсети -->
+        <li class="postinfo-panel__item postinfo-panel__item_socials  postinfo-panel__item_socials_right ">
+          <ul class="post-share">
+            <li class="post-share__item">
+              <a href="https://twitter.com/intent/tweet?text=%D0%91%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C+%D1%81%D0%BB%D1%83%D1%87%D0%B0%D0%B9%D0%BD%D1%8B%D1%85+%D1%87%D0%B8%D1%81%D0%B5%D0%BB+%D0%B2+Python+https://habr.ru/p/156133/+via+%40habrahabr+%23habr" class="post-share__item-link twitter" title="Опубликовать ссылку в Twitter" target="_blank"></a>
+            </li>
+            <li class="post-share__item">
+              <a href="https://vk.com/share.php?url=https://habrahabr.ru/company/pt/blog/156133/" class="post-share__item-link vkontakte" title="Опубликовать ссылку во ВКонтакте" onclick="window.open(this.href, 'Опубликовать ссылку во Вконтакте', 'width=800,height=300'); return false"></a>
+            </li>
+            <li class="post-share__item">
+              <a href="https://www.facebook.com/sharer/sharer.php?u=https://habrahabr.ru/company/pt/blog/156133/" class="post-share__item-link facebook" title="Опубликовать ссылку в Facebook" onclick="window.open(this.href, 'Опубликовать ссылку в Facebook', 'width=640,height=436,toolbar=0,status=0'); return false"></a>
+            </li>
+            <li class="post-share__item">
+              <a href="https://getpocket.com/edit?url=https://habrahabr.ru/company/pt/blog/156133/&title=Безопасность случайных чисел в Python" target="_blank" class="post-share__item-link pocket" title="Добавить ссылку в Pocket"></a>
+            </li>
+          </ul>
+        </li>
+
+      <!-- кнопка пожаловаться -->
+    </ul>
+  </div>
+
+
+          <div class="post-type">
+    <span class="post-type_nowrap">
+      <span class="post-type__label post-type__label_author">Автор:</span>
+      <a href="/users/YunusovTimur" class="post-type__value post-type__value_author" title="@YunusovTimur">@YunusovTimur</a>
+
+
+
+    </span>
+  </div>
+
+  <div class="author-info " id="company_1321">
+      <a href="/company/pt" class="author-info__image">
+          <img src="//habrastorage.org/getpro/habr/companies/102/6dd/6ab/1026dd6ab1af8036831ea7112cd9154d.jpg" class="author-info__image-pic"/>
+      </a>
+
+      <div class="author-info__desc">
+        <div class="author-info__username">
+
+          <a href="/company/pt" class="author-info__name">Positive Technologies</a>
+
+          <div class="user-rating">
+            <span class="user-rating__label">рейтинг</span>
+            <span class="user-rating__value">529,14</span>
+          </div>
+        </div>
+
+
+      </div>
+
+  </div>
+
+
+  </div>
+
+        
+        <div class="block_after_post">
+
+    <div class="similar-posts">
+      <h2 class="similar-posts__title">Похожие публикации</h2>
+
+      <ul class="content-list content-list_posts">
+          <li class="content-list__item">
+            <div class="post-preview">
+              <div class="post-preview__rating">+56</div>
+              <div class="post-preview__desc">
+                <a class="post-preview__link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'similar_posts', 'common'); }" href="/post/149746/">Случайные числа. Take Two</a>
+                <span class="post-preview__attrs inline-list inline-list_attrs">
+                  <span class="inline-list__item views-count">22,3k</span>
+                  <span class="inline-list__item favorites-count">129</span>
+                  <span class="inline-list__item comments-count">40</span>
+                </span>
+              </div>
+            </div>
+          </li>
+          <li class="content-list__item">
+            <div class="post-preview">
+              <div class="post-preview__rating">+11</div>
+              <div class="post-preview__desc">
+                <a class="post-preview__link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'similar_posts', 'common'); }" href="/post/144187/">Мастер-классы PHDays 2012: от защиты сетей Wi-Fi до безопасности SAP и Web 2.0</a>
+                <span class="post-preview__attrs inline-list inline-list_attrs">
+                  <span class="inline-list__item views-count">4,9k</span>
+                  <span class="inline-list__item favorites-count">20</span>
+                  <span class="inline-list__item comments-count">5</span>
+                </span>
+              </div>
+            </div>
+          </li>
+          <li class="content-list__item">
+            <div class="post-preview">
+              <div class="post-preview__rating">+44</div>
+              <div class="post-preview__desc">
+                <a class="post-preview__link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'similar_posts', 'common'); }" href="/post/142423/">Введение в SELinux: модификация политики targeted для сторонних веб-приложений</a>
+                <span class="post-preview__attrs inline-list inline-list_attrs">
+                  <span class="inline-list__item views-count">20,9k</span>
+                  <span class="inline-list__item favorites-count">269</span>
+                  <span class="inline-list__item comments-count">32</span>
+                </span>
+              </div>
+            </div>
+          </li>
+      </ul>
+    </div>
+
+</div>
+
+            <div class="comments_list " id="comments">
+    <h2 class="title ">
+      Комментарии (<span id="comments_count">11</span>)
+      
+    </h2>
+
+    
+
+    
+
+    <ul id="comments-list">
+      
+  <li class="comment_item" id="comment_5330915" >
+    
+    <span class="parent_id" data-parent_id="0"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5330915">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="troydm">
+            <a href="https://habrahabr.ru/users/troydm/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/a28/23b/8bf/a2823b8bfefb922f868a5def65c958c2_small.jpg" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/troydm/" class="comment-item__username">troydm</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            25 октября 2012 в 16:33
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5330915" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5330915" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  voting-wjt__counter_negative">
+                <span class="voting-wjt__counter-score js-score" title="Всего 19: &uarr;1 и &darr;18">–17</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format bad bad5">
+          random.org and no more problems
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5330915">
+      
+  <li class="comment_item" id="comment_5331199" >
+    
+    <span class="parent_id" data-parent_id="5330915"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5331199">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Raz0r">
+            <a href="https://habrahabr.ru/users/Raz0r/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/224/21b/486/22421b48604b8643a808eeedadcf4488_small.jpg" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Raz0r/" class="comment-item__username">Raz0r</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            25 октября 2012 в 17:26
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5331199" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5331199" data-parent_id="5330915" title="Показать ветку комментариев"></span>
+              <a href="#comment_5330915" class="icon_comment-parent js-comment_parent" data-id="5331199" data-parent_id="5330915" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5331199" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark voting-wjt__counter_positive ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 9: &uarr;8 и &darr;1">+7</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Тогда уж вот это: <a href="http://www.amazon.com/Million-Random-Digits-Normal-Deviates/dp/0833030477">www.amazon.com/Million-Random-Digits-Normal-Deviates/dp/0833030477</a>
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5331199">
+      
+  <li class="comment_item" id="comment_5331217" >
+    
+    <span class="parent_id" data-parent_id="5331199"></span>
+
+    <div class="comment_body ">
+        <div class="author_banned">НЛО прилетело и опубликовало эту надпись здесь</div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5331217">
+      
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+  <li class="comment_item" id="comment_5331411" >
+    
+    <span class="parent_id" data-parent_id="0"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5331411">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Gunnar">
+            <a href="https://habrahabr.ru/users/Gunnar/" class="comment-item__avatar">
+                <span class="comment-item__avatar-img_default user-pic_green"></span>
+            </a>
+            <a href="https://habrahabr.ru/users/Gunnar/" class="comment-item__username">Gunnar</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            25 октября 2012 в 18:14
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5331411" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5331411" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark voting-wjt__counter_positive ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 13: &uarr;10 и &darr;3">+7</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Только каким боком здесь питон не понятно. <b>Любой </b>генератор <b>псевдо</b>-случайных чилсел выдает детерминированную последовательность чисел, зависящую только от зерна. Тот факт что, что большинство программеров не удосуживаются «перезасеивать» генератор во время работы программы — это исключительно их проблемы.<br/>
+<br/>
+Ну и за использование ГПСЧ для генерации ключей сброса пароля нужно в любом случае бить по рукам. Лучше всего /dev/random ну dev/urandom, но только если критически важно отсутсвие блокировки в случае истощения пула энтропии
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5331411">
+      
+  <li class="comment_item" id="comment_5331939" >
+    
+    <span class="parent_id" data-parent_id="5331411"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5331939">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Utter_step">
+            <a href="https://habrahabr.ru/users/Utter_step/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/dd8/c2e/d9d/dd8c2ed9d82ec96e0d9c0e592bc01b91_small.png" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Utter_step/" class="comment-item__username">Utter_step</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            25 октября 2012 в 20:24
+              <span class="comment-item__time_changed icon_comment-edit" title="Kомментарий был изменён">
+                <i class="comment-item__sign_changed">(комментарий был изменён)</i>
+              </span>
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5331939" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5331939" data-parent_id="5331411" title="Показать ветку комментариев"></span>
+              <a href="#comment_5331411" class="icon_comment-parent js-comment_parent" data-id="5331939" data-parent_id="5331411" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5331939" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark voting-wjt__counter_positive ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 4: &uarr;4 и &darr;0">+4</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Хм. В статье рассмотрены методы атаки, специфичные именно для веб-сервисов на питоне, вот таким боком и.
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5331939">
+      
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+  <li class="comment_item" id="comment_5332761" >
+    
+    <span class="parent_id" data-parent_id="0"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5332761">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="kmike">
+            <a href="https://habrahabr.ru/users/kmike/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/88d/d6f/fe5/88dd6ffe5f5d795320c82e27239cdf40_small.jpg" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/kmike/" class="comment-item__username">kmike</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            25 октября 2012 в 23:26
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5332761" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5332761" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark voting-wjt__counter_positive ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 5: &uarr;5 и &darr;0">+5</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          К слову, в официальной документации к питоньему модулю random (http://docs.python.org/library/random.html) явно написано «Mersenne Twister… is completely unsuitable for cryptographic purposes». В документации к php-шному rand ( <a href="http://php.net/manual/en/function.rand.php">php.net/manual/en/function.rand.php</a> ) — нет. 
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5332761">
+      
+  <li class="comment_item" id="comment_5337937" >
+    
+    <span class="parent_id" data-parent_id="5332761"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5337937">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Fedcomp">
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/d96/b7b/e17/d96b7be170838a1a5bbd601156275166_small.png" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__username">Fedcomp</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            26 октября 2012 в 23:41
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5337937" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5337937" data-parent_id="5332761" title="Показать ветку комментариев"></span>
+              <a href="#comment_5332761" class="icon_comment-parent js-comment_parent" data-id="5337937" data-parent_id="5332761" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5337937" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 0: &uarr;0 и &darr;0">0</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          может потому что есть <a href="http://www.php.net/manual/ru/function.mt-rand.php">mt_rand</a>?
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5337937">
+      
+  <li class="comment_item" id="comment_5338397" >
+    
+    <span class="parent_id" data-parent_id="5337937"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5338397">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="kmike">
+            <a href="https://habrahabr.ru/users/kmike/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/88d/d6f/fe5/88dd6ffe5f5d795320c82e27239cdf40_small.jpg" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/kmike/" class="comment-item__username">kmike</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            27 октября 2012 в 01:58
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5338397" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5338397" data-parent_id="5337937" title="Показать ветку комментариев"></span>
+              <a href="#comment_5337937" class="icon_comment-parent js-comment_parent" data-id="5338397" data-parent_id="5337937" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5338397" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 0: &uarr;0 и &darr;0">0</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Т.е. в php есть Mersenne Twister? Ну здорово, но он для криптографии не подходит (о чем в доке к питону написано). В справке к mt_rand упоминания о том, что он не подходит для криптографии, опять нет. Или вы имеете в виду, что rand для криптографии подходит? Так тоже ведь не подходит.
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5338397">
+      
+  <li class="comment_item" id="comment_5339217" >
+    
+    <span class="parent_id" data-parent_id="5338397"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5339217">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Fedcomp">
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/d96/b7b/e17/d96b7be170838a1a5bbd601156275166_small.png" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__username">Fedcomp</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            27 октября 2012 в 12:54
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5339217" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5339217" data-parent_id="5338397" title="Показать ветку комментариев"></span>
+              <a href="#comment_5338397" class="icon_comment-parent js-comment_parent" data-id="5339217" data-parent_id="5338397" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5339217" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 0: &uarr;0 и &darr;0">0</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Не, я к тому что для реализации Mersenne Twister в php другая функция, не rand.
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5339217">
+      
+  <li class="comment_item" id="comment_5342525" >
+    
+    <span class="parent_id" data-parent_id="5339217"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5342525">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Raz0r">
+            <a href="https://habrahabr.ru/users/Raz0r/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/224/21b/486/22421b48604b8643a808eeedadcf4488_small.jpg" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Raz0r/" class="comment-item__username">Raz0r</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            28 октября 2012 в 14:00
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5342525" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5342525" data-parent_id="5339217" title="Показать ветку комментариев"></span>
+              <a href="#comment_5339217" class="icon_comment-parent js-comment_parent" data-id="5342525" data-parent_id="5339217" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5342525" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 0: &uarr;0 и &darr;0">0</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          Что rand, что mt_rand — обе функции небезопасны и дело даже не в них, а в том, что в PHP сид задается одинаково, причем одинаково плохо и предсказуемо. Общались по этому поводу с разработчиками PHP, однако ничего менять они не собираются, согласились лишь добавить плашку в документации, хотя и той не видно. 
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5342525">
+      
+  <li class="comment_item" id="comment_5344719" >
+    
+    <span class="parent_id" data-parent_id="5342525"></span>
+
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="5344719">
+
+          <div class="folding-dot-holder"><div class="folding-dot"></div></div>
+
+          <span class="comment-item__user-info"  data-user-login="Fedcomp">
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__avatar">
+                <img src="//habrastorage.org/getpro/habr/avatars/d96/b7b/e17/d96b7be170838a1a5bbd601156275166_small.png" alt="" class="comment-item__avatar-img"/>
+            </a>
+            <a href="https://habrahabr.ru/users/Fedcomp/" class="comment-item__username">Fedcomp</a>
+          </span>
+
+          <time class="comment-item__time_published">
+            29 октября 2012 в 02:45
+          </time>
+
+          <span class="comment-item__controls">
+            <a href="#comment_5344719" class="icon_comment-anchor" title="Ссылка на комментарий"></a>
+
+
+              <span class="icon_comment-tree js-comment_tree" data-id="5344719" data-parent_id="5342525" title="Показать ветку комментариев"></span>
+              <a href="#comment_5342525" class="icon_comment-parent js-comment_parent" data-id="5344719" data-parent_id="5342525" title="Показать предыдущий комментарий"></a>
+            <span class="js-comment_chidren" title="Вернуться к ответу"></span>
+          </span>
+
+            <div id="voting_5344719" class="voting-wjt voting-wjt_comments js-voting   ">
+
+              <div class="voting-wjt__counter js-mark  ">
+                <span class="voting-wjt__counter-score js-score" title="Всего 0: &uarr;0 и &darr;0">0</span>
+              </div>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_plus js-plus" title="Голосовать могут только зарегистрированные пользователи"><span>&uarr;</span></button>
+
+                <button type="button" disabled class="voting-wjt__button voting-wjt__button_minus js-minus" title="Голосовать могут только зарегистрированные пользователи"><span>&darr;</span></button>
+            </div>
+        </div>
+
+        <div class="message html_format ">
+          там можно перезапустить генератор со своим семенем насколько я помню.
+        </div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply">
+
+        </div>
+    </div>
+
+    <ul class="reply_comments" id="reply_comments_5344719">
+      
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </li>
+
+      
+    </ul>
+
+  </div>
+
+
+                  <p class="for_users_only_msg">Только зарегистрированные пользователи могут оставлять комментарии. <a href="https://habrahabr.ru/auth/login/">Войдите</a>, пожалуйста.</p>
+
+        
+<form action="/json/favorites/" method="post" id="edit_tags_form" class="hidden">
+  <input type="hidden" name="action" value="add" />
+  <input type="hidden" name="ti" value="0" />
+  <input type="hidden" name="tt" value="0" />
+  <label>Пометьте топик понятными вам метками, если хотите</label>
+  <input type="text" name="tags_string" class="tags_string" />
+  <div class="description">Метки лучше разделять запятой. Например: <i>общение, социальные сети, myspace.com, подростки, мердок</i></div>
+  <input type="submit" value="Сохранить" class="submit" /> или <a href="#" class="close" onclick="return close_edit_tags()">закрыть</a>
+</form>
+
+      </div>
+    </div>
+
+    <div class="sidebar_right">
+        
+  
+  
+  <div class=" company_widgets">
+
+
+      
+
+
+
+
+
+
+
+
+
+
+        <div class="block company_links">
+    <div class="title">Ссылки</div>
+    <div class="links">
+        <div class="link">
+          <a href="http://www.ptsecurity.ru">Positive Technologies</a>
+          <div><small>www.ptsecurity.ru</small></div>
+        </div>
+        <div class="link">
+          <a href="http://phdays.ru">PHDays — международный форум по информационной безопасности</a>
+          <div><small>phdays.ru</small></div>
+        </div>
+        <div class="link">
+          <a href="http://blog.ptsecurity.ru">Исследовательский центр Positive Research</a>
+          <div><small>blog.ptsecurity.ru</small></div>
+        </div>
+        <div class="link">
+          <a href="http://www.securitylab.ru">Портал по информационной безопасности SecurityLab</a>
+          <div><small>www.securitylab.ru</small></div>
+        </div>
+        <div class="link">
+          <a href="http://www.surfpatrol.ru">Онлайн-cервис проверки безопасности браузера и плагинов SurfPatrol</a>
+          <div><small>www.surfpatrol.ru</small></div>
+        </div>
+        <div class="link">
+          <a href="http://www.linkedin.com/company/positive-technologies">LinkedIn</a>
+          <div><small>www.linkedin.com</small></div>
+        </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="block facebook_like_box no_bg">
+	<div id="facebook_like_box"></div>
+	<script  type="text/javascript">
+		$(window).bind('load', function(){
+			var width = $('#facebook_like_box').width()
+			$('#facebook_like_box').html('<iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2FPositiveTechnologies&amp;width='+width+'&amp;height=260&amp;colorscheme=light&amp;show_faces=true&amp;border_color&amp;stream=false&amp;header=false" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:100%; height:260px;" allowTransparency="true"></iframe>')
+		})
+	</script>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="block vkontakte_groups no_bg">
+
+	<script type="text/javascript" src="//vk.com/js/api/openapi.js?63"></script>
+
+	<!-- VK Widget -->
+	<div id="vk_groups"></div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+		
+		$(window).bind('load', function(){
+			var width = $('#vk_groups').width()
+			VK.Widgets.Group("vk_groups", {mode: 0, width: width, height: "290"}, 28022322);
+		})
+
+			
+		})
+	</script>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+      <div class="block twitter_stream no_bg">
+	<div class="title">Twitter</div>
+	<script  type="text/javascript">
+		$(document).ready(function(){
+		    var json = [{"created_at":"Wed May 04 08:51:13 +0000 2016","id":727782621489549312,"id_str":"727782621489549312","text":"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0434\u0440\u0435\u0432\u043e\u0432\u0438\u0434\u043d\u044b\u0445 \u0441\u0442\u0440\u0443\u043a\u0442\u0443\u0440 \u0438 \u0443\u043d\u0438\u0444\u0438\u0446\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e\u0435 AST https:\/\/t.co\/Stdvhs8LuU #habr","entities":{"hashtags":[{"text":"habr","indices":[77,82]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/Stdvhs8LuU","expanded_url":"https:\/\/habrahabr.ru\/company\/pt\/blog\/210060\/","display_url":"habrahabr.ru\/company\/pt\/blo\u2026","indices":[53,76]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Tue May 03 14:28:46 +0000 2016","id":727505180552474626,"id_str":"727505180552474626","text":"\u0412\u0435\u0440\u0441\u0438\u044f \u043e \u0432\u0437\u043b\u043e\u043c\u0435 Telegram-\u0430\u043a\u043a\u0430\u0443\u043d\u0442\u043e\u0432 \u043e\u043f\u043f\u043e\u0437\u0438\u0446\u0438\u043e\u043d\u0435\u0440\u043e\u0432 \u0441 \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u0430 \u043d\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b\u0430\u0441\u044c. \u0415\u0441\u0442\u044c \u0438 \u0434\u0440\u0443\u0433\u0438\u0435 \u0432\u0435\u043a\u0442\u043e\u0440\u044b \u0430\u0442\u0430\u043a https:\/\/t.co\/XoXJQ9w565","entities":{"hashtags":[],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/XoXJQ9w565","expanded_url":"https:\/\/goo.gl\/961Fs4","display_url":"goo.gl\/961Fs4","indices":[115,138]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":6,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Fri Apr 29 14:00:51 +0000 2016","id":726048606277505024,"id_str":"726048606277505024","text":"RT @AttackDetection: #Suricata #IDS rules for possible #DROWN Attack\nCVE-2016-0800\nCWE-200\nCWE-310\nhttps:\/\/t.co\/9vAtgmjWMU https:\/\/t.co\/BWf\u2026","entities":{"hashtags":[{"text":"Suricata","indices":[21,30]},{"text":"IDS","indices":[31,35]},{"text":"DROWN","indices":[55,61]}],"symbols":[],"user_mentions":[{"screen_name":"AttackDetection","name":"Attack Detection","id":710428105949708288,"id_str":"710428105949708288","indices":[3,19]}],"urls":[{"url":"https:\/\/t.co\/9vAtgmjWMU","expanded_url":"https:\/\/github.com\/ptresearch\/AttackDetection\/tree\/master\/CVE-2016-0800","display_url":"github.com\/ptresearch\/Att\u2026","indices":[99,122]}],"media":[{"id":726046763379888129,"id_str":"726046763379888129","indices":[123,140],"media_url":"http:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","url":"https:\/\/t.co\/BWfxkzgGUn","display_url":"pic.twitter.com\/BWfxkzgGUn","expanded_url":"http:\/\/twitter.com\/AttackDetection\/status\/726046765376528384\/photo\/1","type":"photo","sizes":{"small":{"w":334,"h":334,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"large":{"w":334,"h":334,"resize":"fit"},"medium":{"w":334,"h":334,"resize":"fit"}},"source_status_id":726046765376528384,"source_status_id_str":"726046765376528384","source_user_id":710428105949708288,"source_user_id_str":"710428105949708288"}]},"extended_entities":{"media":[{"id":726046763379888129,"id_str":"726046763379888129","indices":[123,140],"media_url":"http:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","url":"https:\/\/t.co\/BWfxkzgGUn","display_url":"pic.twitter.com\/BWfxkzgGUn","expanded_url":"http:\/\/twitter.com\/AttackDetection\/status\/726046765376528384\/photo\/1","type":"photo","sizes":{"small":{"w":334,"h":334,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"large":{"w":334,"h":334,"resize":"fit"},"medium":{"w":334,"h":334,"resize":"fit"}},"source_status_id":726046765376528384,"source_status_id_str":"726046765376528384","source_user_id":710428105949708288,"source_user_id_str":"710428105949708288"}]},"truncated":false,"source":"\u003ca href=\"http:\/\/twitter.com\" rel=\"nofollow\"\u003eTwitter Web Client\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"retweeted_status":{"created_at":"Fri Apr 29 13:53:32 +0000 2016","id":726046765376528384,"id_str":"726046765376528384","text":"#Suricata #IDS rules for possible #DROWN Attack\nCVE-2016-0800\nCWE-200\nCWE-310\nhttps:\/\/t.co\/9vAtgmjWMU https:\/\/t.co\/BWfxkzgGUn","entities":{"hashtags":[{"text":"Suricata","indices":[0,9]},{"text":"IDS","indices":[10,14]},{"text":"DROWN","indices":[34,40]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/9vAtgmjWMU","expanded_url":"https:\/\/github.com\/ptresearch\/AttackDetection\/tree\/master\/CVE-2016-0800","display_url":"github.com\/ptresearch\/Att\u2026","indices":[78,101]}],"media":[{"id":726046763379888129,"id_str":"726046763379888129","indices":[102,125],"media_url":"http:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","url":"https:\/\/t.co\/BWfxkzgGUn","display_url":"pic.twitter.com\/BWfxkzgGUn","expanded_url":"http:\/\/twitter.com\/AttackDetection\/status\/726046765376528384\/photo\/1","type":"photo","sizes":{"small":{"w":334,"h":334,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"large":{"w":334,"h":334,"resize":"fit"},"medium":{"w":334,"h":334,"resize":"fit"}}}]},"extended_entities":{"media":[{"id":726046763379888129,"id_str":"726046763379888129","indices":[102,125],"media_url":"http:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/ChNvrz2UkAEItqg.jpg","url":"https:\/\/t.co\/BWfxkzgGUn","display_url":"pic.twitter.com\/BWfxkzgGUn","expanded_url":"http:\/\/twitter.com\/AttackDetection\/status\/726046765376528384\/photo\/1","type":"photo","sizes":{"small":{"w":334,"h":334,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"large":{"w":334,"h":334,"resize":"fit"},"medium":{"w":334,"h":334,"resize":"fit"}}}]},"truncated":false,"source":"\u003ca href=\"http:\/\/twitter.com\" rel=\"nofollow\"\u003eTwitter Web Client\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":710428105949708288,"id_str":"710428105949708288","name":"Attack Detection","screen_name":"AttackDetection","location":"","description":"Attack Detection Team at @ptsecurity","url":"https:\/\/t.co\/qKvImgeFx8","entities":{"url":{"urls":[{"url":"https:\/\/t.co\/qKvImgeFx8","expanded_url":"http:\/\/www.ptsecurity.com\/","display_url":"ptsecurity.com","indices":[0,23]}]},"description":{"urls":[]}},"protected":false,"followers_count":63,"friends_count":7,"listed_count":2,"created_at":"Thu Mar 17 11:30:34 +0000 2016","favourites_count":0,"utc_offset":-25200,"time_zone":"Pacific Time (US & Canada)","geo_enabled":false,"verified":false,"statuses_count":2,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"000000","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme1\/bg.png","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme1\/bg.png","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/713015778879123461\/NUSlyh1X_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/713015778879123461\/NUSlyh1X_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/710428105949708288\/1458829940","profile_link_color":"CC0000","profile_sidebar_border_color":"000000","profile_sidebar_fill_color":"000000","profile_text_color":"000000","profile_use_background_image":false,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":7,"favorite_count":6,"favorited":false,"retweeted":true,"possibly_sensitive":false,"lang":"en"},"is_quote_status":false,"retweet_count":7,"favorite_count":0,"favorited":false,"retweeted":true,"possibly_sensitive":false,"lang":"en"},{"created_at":"Thu Apr 28 09:20:14 +0000 2016","id":725615598022070272,"id_str":"725615598022070272","text":"\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u0430 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0430 #PHDays VI!\nhttps:\/\/t.co\/9FvlHqWcB8","entities":{"hashtags":[{"text":"PHDays","indices":[23,30]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/9FvlHqWcB8","expanded_url":"http:\/\/www.phdays.ru\/program\/schedule\/","display_url":"phdays.ru\/program\/schedu\u2026","indices":[35,58]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"uk"},{"created_at":"Tue Apr 26 13:25:56 +0000 2016","id":724952653843800064,"id_str":"724952653843800064","text":"Lightning Talk: \u041f\u043e\u043b\u0443\u0447\u0438\u0442\u0435 \u0441\u0432\u043e\u0438 \u043f\u044f\u0442\u044c \u043c\u0438\u043d\u0443\u0442 \u043d\u0430 #PHDays VI https:\/\/t.co\/8H2GWDwIIY","entities":{"hashtags":[{"text":"PHDays","indices":[44,51]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/8H2GWDwIIY","expanded_url":"http:\/\/www.phdays.ru\/press\/news\/54216\/","display_url":"phdays.ru\/press\/news\/542\u2026","indices":[55,78]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Mon Apr 25 07:26:43 +0000 2016","id":724499866127314944,"id_str":"724499866127314944","text":"\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d \u0441\u043f\u0438\u0441\u043e\u043a \u043f\u043b\u043e\u0449\u0430\u0434\u043e\u043a #PHDays Everywhere! https:\/\/t.co\/AMHbKCJGZZ","entities":{"hashtags":[{"text":"PHDays","indices":[28,35]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/AMHbKCJGZZ","expanded_url":"http:\/\/www.phdays.ru\/registration\/everywhere\/#2","display_url":"phdays.ru\/registration\/e\u2026","indices":[48,71]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":0,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"uk"},{"created_at":"Fri Apr 22 09:05:26 +0000 2016","id":723437546697416709,"id_str":"723437546697416709","text":"\u0418\u0441\u0442\u043e\u0440\u0438\u0438 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u043e\u0432 #PHDays VI: \u043a\u0430\u043a \u041c\u043e\u043a\u0441\u0438 \u041c\u0430\u0440\u043b\u0438\u043d\u0441\u043f\u0430\u0439\u043a \u043f\u043e\u0431\u0435\u0434\u0438\u043b \u0424\u0411\u0420, \u0430 \u0414\u0436\u043e\u043d \u0411\u0430\u043c\u0431\u0435\u043d\u0435\u043a \u0432\u044b\u0447\u0438\u0441\u043b\u0438\u043b \u0445\u0430\u043a\u0435\u0440\u0430 \u2116 1 https:\/\/t.co\/LxISC60RzD","entities":{"hashtags":[{"text":"PHDays","indices":[19,26]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/LxISC60RzD","expanded_url":"http:\/\/www.phdays.ru\/press\/news\/52334\/","display_url":"phdays.ru\/press\/news\/523\u2026","indices":[102,125]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Fri Apr 22 07:15:57 +0000 2016","id":723409991898537984,"id_str":"723409991898537984","text":"\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043f\u043e\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u043f\u0440\u0430\u0432\u0438\u043b IDS\/IPS Suricata \u0434\u043b\u044f \u043d\u043e\u0432\u044b\u0445 \u0443\u0433\u0440\u043e\u0437 https:\/\/t.co\/Tv8dXkJraF #habr","entities":{"hashtags":[{"text":"habr","indices":[85,90]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/Tv8dXkJraF","expanded_url":"https:\/\/habrahabr.ru\/company\/pt\/blog\/282029\/","display_url":"habrahabr.ru\/company\/pt\/blo\u2026","indices":[61,84]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":4,"favorite_count":3,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"uk"},{"created_at":"Thu Apr 21 14:49:31 +0000 2016","id":723161751227908096,"id_str":"723161751227908096","text":"\u041e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u044b \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b \u043e\u0442\u0431\u043e\u0440\u0430 \u043d\u0430 \u0441\u0435\u043a\u0446\u0438\u044e #PHDays VI Young School https:\/\/t.co\/Z876tJ7bcn","entities":{"hashtags":[{"text":"PHDays","indices":[38,45]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/Z876tJ7bcn","expanded_url":"http:\/\/www.phdays.ru\/press\/news\/52295\/","display_url":"phdays.ru\/press\/news\/522\u2026","indices":[62,85]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":2,"favorite_count":0,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Thu Apr 21 11:42:10 +0000 2016","id":723114601831907328,"id_str":"723114601831907328","text":"\u041e\u043d\u043b\u0430\u0439\u043d-\u043a\u043e\u043d\u043a\u0443\u0440\u0441\u044b #PHDays \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u044b! \u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b HackQuest \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435 https:\/\/t.co\/GQr9OOqoYj \u041f\u043e\u0437\u0434\u0440\u0430\u0432\u043b\u044f\u0435\u043c \u043f\u043e\u0431\u0435\u0434\u0438\u0442\u0435\u043b\u0435\u0439!","entities":{"hashtags":[{"text":"PHDays","indices":[16,23]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/GQr9OOqoYj","expanded_url":"https:\/\/slemma.com\/share\/6f99b6e90c475ba103971700456a7bc1b524e825","display_url":"slemma.com\/share\/6f99b6e9\u2026","indices":[75,98]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Fri Apr 15 09:48:26 +0000 2016","id":720911652477136896,"id_str":"720911652477136896","text":"\u0411\u0438\u0442\u0432\u0430 \u0437\u0430 \u0438\u043d\u0432\u0430\u0439\u0442\u044b #PHDays \u2014 \u043a\u043e\u043d\u043a\u0443\u0440\u0441 #BestReverser \u0432 \u0441\u0430\u043c\u043e\u043c \u0440\u0430\u0437\u0433\u0430\u0440\u0435! \u0418\u0441\u043f\u043e\u043b\u043d\u044f\u0435\u043c\u044b\u0439 \u0444\u0430\u0439\u043b \u0434\u043b\u044f \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u043c\u043e\u0436\u043d\u043e \u0441\u043a\u0430\u0447\u0430\u0442\u044c \u0437\u0434\u0435\u0441\u044c: https:\/\/t.co\/vPiuftZN5t","entities":{"hashtags":[{"text":"PHDays","indices":[17,24]},{"text":"BestReverser","indices":[35,48]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/vPiuftZN5t","expanded_url":"http:\/\/phdays.ru\/upload\/contests\/PHDays2016.zip","display_url":"phdays.ru\/upload\/contest\u2026","indices":[116,139]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":0,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Tue Apr 12 12:08:31 +0000 2016","id":719859742684901381,"id_str":"719859742684901381","text":"\u041d\u043e\u0432\u044b\u0435 \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u0438 PT MaxPatrol SIEM: \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0434\u0430\u043d\u043d\u044b\u0445 \u0438\u0437 DLP-\u0441\u0438\u0441\u0442\u0435\u043c\u044b DeviceLock https:\/\/t.co\/qlLOF9RVHV","entities":{"hashtags":[],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/qlLOF9RVHV","expanded_url":"http:\/\/www.ptsecurity.ru\/about\/news\/48862\/","display_url":"ptsecurity.ru\/about\/news\/488\u2026","indices":[80,103]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":2,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"und"},{"created_at":"Tue Apr 12 11:19:46 +0000 2016","id":719847472437321729,"id_str":"719847472437321729","text":"\u0421\u043e\u0440\u0435\u0432\u043d\u043e\u0432\u0430\u043d\u0438\u0435 #PHDays HackQuest \u0441\u0442\u0430\u0440\u0442\u0443\u0435\u0442 \u0432 00:00 13 \u0430\u043f\u0440\u0435\u043b\u044f. \u041d\u0435 \u043f\u0440\u043e\u043f\u0443\u0441\u0442\u0438\u0442\u0435! https:\/\/t.co\/pPgey98wVf","entities":{"hashtags":[{"text":"PHDays","indices":[13,20]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/pPgey98wVf","expanded_url":"http:\/\/www.phdays.ru\/program\/contests\/#48475","display_url":"phdays.ru\/program\/contes\u2026","indices":[74,97]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":0,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Tue Apr 12 10:44:01 +0000 2016","id":719838477148401665,"id_str":"719838477148401665","text":"\u041d\u043e\u0432\u044b\u0435 \u043a\u043e\u043d\u043a\u0443\u0440\u0441\u044b \u043d\u0430 #PHDays VI: \u043b\u043e\u043c\u0430\u0435\u043c \u0413\u042d\u0421 \u0438 \u00ab\u0443\u043c\u043d\u044b\u0439\u00bb \u0434\u043e\u043c https:\/\/t.co\/WshPmSFg36","entities":{"hashtags":[{"text":"PHDays","indices":[18,25]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/WshPmSFg36","expanded_url":"http:\/\/www.phdays.ru\/press\/news\/48853\/","display_url":"phdays.ru\/press\/news\/488\u2026","indices":[55,78]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":2,"favorite_count":2,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Mon Apr 11 16:14:52 +0000 2016","id":719559348717006849,"id_str":"719559348717006849","text":"\u0412 \u0440\u0430\u043c\u043a\u0430\u0445 \u043a\u043e\u043d\u043a\u0443\u0440\u0441\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b #PHDays \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b \u043a\u043e\u043d\u043a\u0443\u0440\u0441 Best Reverser. \u041f\u043e\u0431\u0435\u0434\u0438\u0442\u0435\u043b\u0438 \u0438 \u043f\u0440\u0438\u0437\u0435\u0440\u044b \u043f\u043e\u043b\u0443\u0447\u0430\u0442 \u0438\u043d\u0432\u0430\u0439\u0442\u044b \u043d\u0430 \u0444\u043e\u0440\u0443\u043c https:\/\/t.co\/0aHqQFKj8J","entities":{"hashtags":[{"text":"PHDays","indices":[30,37]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/0aHqQFKj8J","expanded_url":"http:\/\/www.phdays.ru\/program\/contests\/#40931","display_url":"phdays.ru\/program\/contes\u2026","indices":[117,140]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":2,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Mon Apr 11 14:40:09 +0000 2016","id":719535515247243264,"id_str":"719535515247243264","text":"Axoft \u043d\u0430\u0447\u0438\u043d\u0430\u0435\u0442 \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0441 @ptsecurity \u043f\u043e \u043b\u0438\u043d\u0435\u0439\u043a\u0435 #MaxPatrol https:\/\/t.co\/o5NkknzsFg","entities":{"hashtags":[{"text":"MaxPatrol","indices":[55,65]}],"symbols":[],"user_mentions":[{"screen_name":"ptsecurity","name":"PositiveTechnologies","id":45668964,"id_str":"45668964","indices":[32,43]}],"urls":[{"url":"https:\/\/t.co\/o5NkknzsFg","expanded_url":"http:\/\/www.ptsecurity.ru\/about\/news\/48481\/","display_url":"ptsecurity.ru\/about\/news\/484\u2026","indices":[66,89]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":2,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Thu Apr 07 09:00:56 +0000 2016","id":718000594141724672,"id_str":"718000594141724672","text":"\u041a\u0440\u0438\u0442\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u0443\u044f\u0437\u0432\u0438\u043c\u043e\u0441\u0442\u044c iOS 9 \u043f\u043e\u0437\u0432\u043e\u043b\u044f\u0435\u0442 \u043e\u0431\u0445\u043e\u0434\u0438\u0442\u044c \u044d\u043a\u0440\u0430\u043d \u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0438 c \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u0433\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0433\u043e \u043f\u043e\u043c\u043e\u0449\u043d\u0438\u043a\u0430 Siri https:\/\/t.co\/bGEpBd5O65 #habr","entities":{"hashtags":[{"text":"habr","indices":[125,130]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/bGEpBd5O65","expanded_url":"https:\/\/habrahabr.ru\/company\/pt\/blog\/281150\/","display_url":"habrahabr.ru\/company\/pt\/blo\u2026","indices":[101,124]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":3,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Wed Apr 06 13:44:44 +0000 2016","id":717709626687496197,"id_str":"717709626687496197","text":"\u041e\u043d\u043b\u0430\u0439\u043d-\u043a\u043e\u043d\u043a\u0443\u0440\u0441\u044b \u043d\u0430 #PHDays: \u0431\u0438\u0442\u0432\u0430 \u0437\u0430 \u0438\u043d\u0432\u0430\u0439\u0442\u044b https:\/\/t.co\/soZ4GK1oDx","entities":{"hashtags":[{"text":"PHDays","indices":[19,26]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/soZ4GK1oDx","expanded_url":"http:\/\/www.phdays.ru\/press\/news\/46226\/","display_url":"phdays.ru\/press\/news\/462\u2026","indices":[45,68]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":0,"favorite_count":2,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Fri Apr 01 12:34:34 +0000 2016","id":715880030585413632,"id_str":"715880030585413632","text":"RT @phdays_ru: \u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 \u043a #PHDays VI: \u0441\u0442\u0440\u043e\u0438\u043c \u043c\u0430\u043a\u0435\u0442 \u0413\u042d\u0421 https:\/\/t.co\/CLBjdVRGnV","entities":{"hashtags":[{"text":"PHDays","indices":[28,35]}],"symbols":[],"user_mentions":[{"screen_name":"phdays_ru","name":"Positive Hack Days","id":412987034,"id_str":"412987034","indices":[3,13]}],"urls":[],"media":[{"id":715879952621649922,"id_str":"715879952621649922","indices":[57,80],"media_url":"http:\/\/pbs.twimg.com\/media\/Ce9RBiXWQAI3uLC.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/Ce9RBiXWQAI3uLC.jpg","url":"https:\/\/t.co\/CLBjdVRGnV","display_url":"pic.twitter.com\/CLBjdVRGnV","expanded_url":"http:\/\/twitter.com\/phdays_ru\/status\/715879953015898113\/photo\/1","type":"photo","sizes":{"thumb":{"w":150,"h":150,"resize":"crop"},"small":{"w":340,"h":604,"resize":"fit"},"medium":{"w":600,"h":1067,"resize":"fit"},"large":{"w":720,"h":1280,"resize":"fit"}},"source_status_id":715879953015898113,"source_status_id_str":"715879953015898113","source_user_id":412987034,"source_user_id_str":"412987034"}]},"extended_entities":{"media":[{"id":715879952621649922,"id_str":"715879952621649922","indices":[57,80],"media_url":"http:\/\/pbs.twimg.com\/media\/Ce9RBiXWQAI3uLC.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/Ce9RBiXWQAI3uLC.jpg","url":"https:\/\/t.co\/CLBjdVRGnV","display_url":"pic.twitter.com\/CLBjdVRGnV","expanded_url":"http:\/\/twitter.com\/phdays_ru\/status\/715879953015898113\/photo\/1","type":"photo","sizes":{"thumb":{"w":150,"h":150,"resize":"crop"},"small":{"w":340,"h":604,"resize":"fit"},"medium":{"w":600,"h":1067,"resize":"fit"},"large":{"w":720,"h":1280,"resize":"fit"}},"source_status_id":715879953015898113,"source_status_id_str":"715879953015898113","source_user_id":412987034,"source_user_id_str":"412987034"},{"id":715879952663633920,"id_str":"715879952663633920","indices":[57,80],"media_url":"http:\/\/pbs.twimg.com\/media\/Ce9RBihW4AAsl4q.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/Ce9RBihW4AAsl4q.jpg","url":"https:\/\/t.co\/CLBjdVRGnV","display_url":"pic.twitter.com\/CLBjdVRGnV","expanded_url":"http:\/\/twitter.com\/phdays_ru\/status\/715879953015898113\/photo\/1","type":"photo","sizes":{"medium":{"w":600,"h":1067,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"small":{"w":340,"h":604,"resize":"fit"},"large":{"w":720,"h":1280,"resize":"fit"}},"source_status_id":715879953015898113,"source_status_id_str":"715879953015898113","source_user_id":412987034,"source_user_id_str":"412987034"},{"id":715879952755900416,"id_str":"715879952755900416","indices":[57,80],"media_url":"http:\/\/pbs.twimg.com\/media\/Ce9RBi3WwAAkGbi.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/Ce9RBi3WwAAkGbi.jpg","url":"https:\/\/t.co\/CLBjdVRGnV","display_url":"pic.twitter.com\/CLBjdVRGnV","expanded_url":"http:\/\/twitter.com\/phdays_ru\/status\/715879953015898113\/photo\/1","type":"photo","sizes":{"small":{"w":340,"h":604,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"},"large":{"w":720,"h":1280,"resize":"fit"},"medium":{"w":600,"h":1067,"resize":"fit"}},"source_status_id":715879953015898113,"source_status_id_str":"715879953015898113","source_user_id":412987034,"source_user_id_str":"412987034"},{"id":715879952399409153,"id_str":"715879952399409153","indices":[57,80],"media_url":"http:\/\/pbs.twimg.com\/media\/Ce9RBhiXIAEw21J.jpg","media_url_https":"https:\/\/pbs.twimg.com\/media\/Ce9RBhiXIAEw21J.jpg","url":"https:\/\/t.co\/CLBjdVRGnV","display_url":"pic.twitter.com\/CLBjdVRGnV","expanded_url":"http:\/\/twitter.com\/phdays_ru\/status\/715879953015898113\/photo\/1","type":"photo","sizes":{"large":{"w":1024,"h":576,"resize":"fit"},"small":{"w":340,"h":191,"resize":"fit"},"medium":{"w":600,"h":338,"resize":"fit"},"thumb":{"w":150,"h":150,"resize":"crop"}},"source_status_id":715879953015898113,"source_status_id_str":"715879953015898113","source_user_id":412987034,"source_user_id_str":"412987034"}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":2,"favorite_count":1,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"},{"created_at":"Fri Apr 01 10:53:58 +0000 2016","id":715854715347734529,"id_str":"715854715347734529","text":"\u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0441\u0432\u043e\u0438 \u0441\u0438\u043b\u044b \u0432\u043e \u0432\u0441\u0435\u0440\u043e\u0441\u0441\u0438\u0439\u0441\u043a\u043e\u0439 \u043e\u043b\u0438\u043c\u043f\u0438\u0430\u0434\u0435 \u043f\u043e \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438 https:\/\/t.co\/QrXTH9f97h #habr","entities":{"hashtags":[{"text":"habr","indices":[87,92]}],"symbols":[],"user_mentions":[],"urls":[{"url":"https:\/\/t.co\/QrXTH9f97h","expanded_url":"https:\/\/habrahabr.ru\/company\/pt\/blog\/280686\/","display_url":"habrahabr.ru\/company\/pt\/blo\u2026","indices":[63,86]}]},"truncated":false,"source":"\u003ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003eHootsuite\u003c\/a\u003e","in_reply_to_status_id":null,"in_reply_to_status_id_str":null,"in_reply_to_user_id":null,"in_reply_to_user_id_str":null,"in_reply_to_screen_name":null,"user":{"id":45668964,"id_str":"45668964","name":"PositiveTechnologies","screen_name":"ptsecurity","location":"","description":"\u041e\u0434\u043d\u0430 \u0438\u0437 \u0432\u0435\u0434\u0443\u0449\u0438\u0445 \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0439 \u0432 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u043e\u043d\u043d\u043e\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041c\u044b \u0437\u0430\u043d\u0438\u043c\u0430\u0435\u043c\u0441\u044f \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c \u0430\u043d\u0430\u043b\u0438\u0437\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u0438 \u0438 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u0430\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438.","url":"http:\/\/t.co\/V45flREJIF","entities":{"url":{"urls":[{"url":"http:\/\/t.co\/V45flREJIF","expanded_url":"http:\/\/www.ptsecurity.ru","display_url":"ptsecurity.ru","indices":[0,22]}]},"description":{"urls":[]}},"protected":false,"followers_count":2948,"friends_count":71,"listed_count":91,"created_at":"Mon Jun 08 20:58:31 +0000 2009","favourites_count":220,"utc_offset":10800,"time_zone":"Moscow","geo_enabled":false,"verified":false,"statuses_count":1385,"lang":"en","contributors_enabled":false,"is_translator":false,"is_translation_enabled":false,"profile_background_color":"1A1B1F","profile_background_image_url":"http:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_image_url_https":"https:\/\/abs.twimg.com\/images\/themes\/theme9\/bg.gif","profile_background_tile":false,"profile_image_url":"http:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_image_url_https":"https:\/\/pbs.twimg.com\/profile_images\/708320081663627264\/WwNWpNPL_normal.jpg","profile_banner_url":"https:\/\/pbs.twimg.com\/profile_banners\/45668964\/1457711632","profile_link_color":"CC0000","profile_sidebar_border_color":"FFFFFF","profile_sidebar_fill_color":"252429","profile_text_color":"666666","profile_use_background_image":true,"has_extended_profile":false,"default_profile":false,"default_profile_image":false,"following":false,"follow_request_sent":false,"notifications":false},"geo":null,"coordinates":null,"place":null,"contributors":null,"is_quote_status":false,"retweet_count":1,"favorite_count":2,"favorited":false,"retweeted":false,"possibly_sensitive":false,"lang":"ru"}];
+				json = json.slice(0, 3);
+
+				for(key in json){ 
+	    		
+	    		var text = replaceURLWithHTMLLinks(json[key].text);
+	    		var name = json[key].user.screen_name;
+	    		var date = H(json[key].created_at);
+	    			    		
+	    		$('#tweets_stream').append('<div class="tweet">\
+						<div class="date">'+date+'</div>\
+	    			<div class="username"><a href="https://twitter.com/'+name+'">'+name+'</a></div>\
+	    			<div class="text">'+text+'</div>\
+	    		</div>')
+	    	}
+
+			
+		})
+	</script>
+	<div class="tweets" id="tweets_stream">
+	</div>
+	
+	<a href="https://twitter.com/ptsecurity" class="twitter-follow-button" data-show-count="false" data-lang="ru" data-size="large" data-show-screen-name="true">Читать @ptsecurity</a>
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>
+
+
+</div>
+
+
+
+
+
+
+  </div>
+
+  <div class="block corporate_blog">
+  <div class="title">Блог на Хабрахабре</div>
+  <div class="posts_list">
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/210060/" class="post_name">Обработка древовидных структур и унифицированное AST</a>&nbsp;&nbsp;
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/282520/" class="post_name">Lightning Talk: Получите свои пять минут на PHDays VI</a>&nbsp;&nbsp;
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/282349/" class="post_name">Обнаружение DGA-доменов</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/282349/#comments" class="count count_icon">3</a>
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/282209/" class="post_name">Истории участников PHDays VI: как Мокси Марлинспайк победил ФБР, а Джон Бамбенек вычислил хакера № 1</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/282209/#comments" class="count count_icon">5</a>
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/282165/" class="post_name">Объявлены результаты отбора на секцию Young School</a>&nbsp;&nbsp;
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/282029/" class="post_name">Статистика появления правил IDS/IPS Suricata для новых угроз</a>&nbsp;&nbsp;
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/281445/" class="post_name">По следам SSH</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/281445/#comments" class="count count_icon">9</a>
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/281439/" class="post_name">Новые конкурсы на PHDays VI: ломаем ГЭС и «умный» дом</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/281439/#comments" class="count count_icon">2</a>
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/281150/" class="post_name">Критическая уязвимость iOS 9 позволяет обходить экран блокировки c помощью голосового помощника Siri</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/281150/#comments" class="count count_icon">8</a>
+      </div>
+      <div class="post_item">
+        <a href="https://habrahabr.ru/company/pt/blog/281078/" class="post_name">Онлайн-конкурсы на PHDays: битва за инвайты</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/company/pt/blog/281078/#comments" class="count count_icon">5</a>
+      </div>
+  </div>
+</div>
+
+  
+
+    </div>
+  </div>
+
+
+          
+  <div class="column-wrapper column-wrapper_bottom column-wrapper_bordered">
+    <div class="content_left">
+      
+
+  <div class="live-broadcast live-broadcast_feed">
+    <h2 class="live-broadcast__title live-broadcast__title_feed">Интересные публикации</h2>
+
+    <div class="dropdown dropdown_broadcast">
+      <button type="button" class="btn btn_outline_grey btn_large icon_cog dropdown-toggle" data-toggle="dropdown">
+      </button>
+      <div class="dropdown-container">
+        <ul class="n-dropdown-menu n-dropdown-menu_feed" id="filter">
+          <li class="n-dropdown-menu__item">
+            <label class="checkbox checkbox_custom">
+              <input type="checkbox" class="checkbox__input" name="habrahabr" checked/>
+              <span class="checkbox__label">Хабрахабр</span>
+            </label>
+          </li>
+          <li class="n-dropdown-menu__item">
+            <label class="checkbox checkbox_custom">
+              <input type="checkbox" class="checkbox__input" name="geektimes" checked/>
+              <span class="checkbox__label">Гиктаймс</span>
+            </label>
+          </li>
+          <li class="n-dropdown-menu__item">
+            <label class="checkbox checkbox_custom">
+              <input type="checkbox" class="checkbox__input" name="megamozg" checked/>
+              <span class="checkbox__label">Мегамозг</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="live-broadcast__content">
+      <ul class="content-list content-list_feed" id="list">
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282770/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Восстановление данных PostgreSQL после потери pg_control</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282770/#comments" class="content-list__item-counter icon_comments">0</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275248/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Гаджет Posting Tail превращает собаку в блоггера</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275248/#comments" class="content-list__item-counter icon_comments">6</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282932/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">О полезности индексов по выражениям</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282932/#comments" class="content-list__item-counter icon_comments">3</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275306/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Российский спутник «СамСат-218» не выходит на связь. Нужна помощь сообщества</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275306/#comments" class="content-list__item-counter icon_comments">15</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282940/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Как написать монаду IO на C# (не) без помощи параллельной вселенной и машины времени</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282940/#comments" class="content-list__item-counter icon_comments">2</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275304/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Построение хексапода для тех кто не хочет мастерить, а хочет программировать</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275304/#comments" class="content-list__item-counter icon_comments">6</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275300/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">На какие средства был снят фильм «Волк с Уолл-стрит»: Расследование Wall Street Journal</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275300/#comments" class="content-list__item-counter icon_comments">5</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/281561/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Пол Грэм, «Хакеры и художники», глава 10: «Programming Languages Explained»</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/281561/#comments" class="content-list__item-counter icon_comments">0</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275288/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Виктор Гаврилович Борисов — отец советских радиокружков</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275288/#comments" class="content-list__item-counter icon_comments">7</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275298/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Новая статистика Steam о конфигурации ПК геймеров</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275298/#comments" class="content-list__item-counter icon_comments">18</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275296/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Внедрение GosLinux оказалось в 37 раз дешевле лицензий Windows</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275296/#comments" class="content-list__item-counter icon_comments">60</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282908/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Виртуальная ИТ-инфраструктура: Плюсы и минусы</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282908/#comments" class="content-list__item-counter icon_comments">0</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282916/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">IMAPSync. Перенос почты между серверами</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282916/#comments" class="content-list__item-counter icon_comments">20</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275292/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Что будет с глазом, если посмотреть в телескоп на Солнце?</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275292/#comments" class="content-list__item-counter icon_comments">38</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282890/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Sasha Goldshtein, гуру .NET Performance, выступит на .NET-конференции в Питере</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282890/#comments" class="content-list__item-counter icon_comments">3</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/281805/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">IaaS-кейсы: Как «облако» помогает работе бизнеса</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/281805/#comments" class="content-list__item-counter icon_comments">1</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282902/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Delphi. Что таит в себе TDictionary</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282902/#comments" class="content-list__item-counter icon_comments">9</a>
+          </li>
+          <li class="content-list__item content-list__item_habrahabr hidden" data-type="habrahabr">
+            <a href="https://habrahabr.ru/post/282900/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Заметки с MBC Symposium: еще о седловых точках</a>&nbsp;&nbsp;<a href="https://habrahabr.ru/post/282900/#comments" class="content-list__item-counter icon_comments">9</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275284/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Сильное похудение надолго замедляет метаболизм</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275284/#comments" class="content-list__item-counter icon_comments">31</a>
+          </li>
+          <li class="content-list__item content-list__item_geektimes hidden" data-type="geektimes">
+            <a href="https://geektimes.ru/post/275276/" class="content-list__item-link" onclick="if (typeof ga === 'function') { ga('send', 'event', 'tm_block', 'live_broadcast_activity', 'comment'); }" data-utm="?utm_source=tm_habrahabr&utm_medium=tm_block&utm_campaign=tm_promo">Стартовали предзаказы на игровую консоль Pyra</a>&nbsp;&nbsp;<a href="https://geektimes.ru/post/275276/#comments" class="content-list__item-counter icon_comments">18</a>
+          </li>
+      </ul>
+    </div>
+  </div>
+
+
+    </div>
+
+  </div>
+
+
+
+          <div class="clear"></div>
+
+          <div class="footer_panel">
+            <div id="footer">
+  <dl>
+    <dd><a href="https://habrahabr.ru/auth/login/">Войти</a></dd>
+    <dd><a href="https://habrahabr.ru/auth/register/">Регистрация</a></dd>
+  </dl>
+  <dl>
+    <dt>Разделы</dt>
+    <dd><a href="https://habrahabr.ru/posts/top/">Публикации</a></dd>
+    <dd><a href="https://habrahabr.ru/hubs/">Хабы</a></dd>
+    <dd><a href="https://habrahabr.ru/companies/">Компании</a></dd>
+    <dd><a href="https://habrahabr.ru/users/">Пользователи</a></dd>
+    <dd><a href="https://toster.ru/?_aa=press_anykey">Q&amp;A</a></dd>
+    <dd><a href="https://habrahabr.ru/sandbox/">Песочница</a></dd>
+
+  </dl>
+  <dl>
+    <dt>Инфо</dt>
+    <dd><a href="/info/about/">О сайте</a></dd>
+    <dd><a href="/info/help/rules/">Правила</a></dd>
+    <dd><a href="/info/help/">Помощь</a></dd>
+    <dd><a href="/info/agreement/">Соглашение</a></dd>
+  </dl>
+  <dl>
+    <dt>Услуги</dt>
+    <dd><a href="https://special.habrahabr.ru/advertising/">Реклама</a></dd>
+      <dd><a href="https://special.habrahabr.ru/">Спецпроекты</a></dd>
+      <dd><a href="https://special.habrahabr.ru/corporate/">Тарифы</a></dd>
+      <dd><a href="https://special.habrahabr.ru/content/">Контент</a></dd>
+      <dd><a href="https://special.habrahabr.ru/workshops/">Вебинары</a></dd>
+  </dl>
+
+  <dl>
+    <dt>Разное</dt>
+    <dd><a href="/apps/">Приложения</a></dd>
+    <dd><a href="https://special.habrahabr.ru/microsoft/mobile/" target="_blank">Тест-драйв</a></dd>
+    <dd><a href="https://special.habrahabr.ru/hello_startup/bizspark/" target="_blank">Помощь стартапам</a></dd>
+      <dd><a href="https://special.habrahabr.ru/#hr">Работа в IT</a></dd>
+  </dl>
+  <div class="copyright">
+
+    <div class="about">
+      <a href="https://tmtm.ru/">© TM</a>
+
+      <br><br>
+      <a href="https://habrahabr.ru/feedback/">Служба поддержки</a><br><br>
+          <a href="https://m.habrahabr.ru/post/156133/?mobile=yes">Мобильная версия</a><br><br>
+
+
+      <div class="social_accounts">
+        <a href="https://twitter.com/habrahabr" class="tw"></a>
+        <a href="https://www.facebook.com/habrahabr.ru" class="fb"></a>
+        <a href="https://vk.com/habr" class="vk"></a>
+        <!-- <a href="" class="gp"></a> //-->
+      </div>
+
+    </div>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+      <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/libs/jquery.cookie.js"></script>
+      <script type="text/javascript">
+        $(document).ready( function(){
+          window.tmidLogin = function(){ return false; };
+
+          if( $.cookie('tmid_no_check') == undefined ) {
+            var expire = new Date();
+            expire.setMinutes(expire.getMinutes() + 10 );
+            $.cookie('tmid_no_check', 1, { expires: expire } );
+            $.getScript("https://id.tmtm.ru/checklogin/", function(){
+              if( window.tmidLogin() ) {
+
+                  var href = $('#login').attr('href');
+
+                  if( href !== undefined ) {
+                      window.location.href = href;
+                  }
+              }
+            });
+          }
+        });
+      </script>
+
+    <script type="text/javascript">
+  // global vars
+  var g_base_url = 'habrahabr.ru';
+  var g_show_xpanel = false;
+  var g_base_fullurl = 'https://habrahabr.ru/';
+  var g_is_guest = false;
+</script> 
+
+      <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/assets/shortcuts.js"></script>
+
+    <script type="text/javascript" src="//habracdn.net/habr/javascripts/1462365892/assets/global_footer_main.js"></script>
+
+    	<script type="text/javascript" src="https://habrahabr.ru/viewcount/post/156133/"></script>
+
+    
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+(function (d, w, c) {
+    (w[c] = w[c] || []).push(function() {
+        try {
+            if (typeof (_yaparams) != 'undefined') {
+                w.yaCounter24049213 = new Ya.Metrika({id:24049213,
+                    webvisor:true,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true,
+                    params:_yaparams});
+            } else {
+                w.yaCounter24049213 = new Ya.Metrika({id:24049213,
+                    webvisor:true,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true});
+            }
+
+        } catch(e) { }
+    });
+
+    var n = d.getElementsByTagName("script")[0],
+        s = d.createElement("script"),
+        f = function () { n.parentNode.insertBefore(s, n); };
+    s.type = "text/javascript";
+    s.async = true;
+    s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
+
+    if (w.opera == "[object Opera]") {
+        d.addEventListener("DOMContentLoaded", f, false);
+    } else { f(); }
+})(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="//mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+    
+
+    
+
+    <!-- Хабр не резиновый! -->
+  </body>
+</html>
+
