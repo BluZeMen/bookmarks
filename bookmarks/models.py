@@ -1,10 +1,5 @@
-from urllib.error import HTTPError
-from urllib.parse import urlparse
-
 from django.db import models
 from django.contrib.auth.models import User
-from bs4 import BeautifulSoup
-from urllib.request import urlopen, Request
 
 # Create your models here.
 

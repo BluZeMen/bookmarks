@@ -9,7 +9,7 @@ from urllib.request import urlopen, Request
 import time
 import random
 
-# количество потоков обслуживающих очередь
+# number of serving threads
 num_worker_threads=3
 
 
@@ -50,7 +50,7 @@ def worker():
         print('Started task by: '+str(threading.current_thread()) + 'bookmark: ' + str(item))
         item.save()
         parse(item)
-        time.sleep(random.randint(4, 8))  # Для наглядности многопоточного выполнения
+        time.sleep(random.randint(4, 8))  # for illustrating of multithreading
         item.save()
         print('Finished task by: ' + str(threading.current_thread()) + 'bookmark: ' + str(item))
         tasks_queue.task_done()
