@@ -144,7 +144,7 @@ STATICFILES_FINDERS = (
 
 
 
-# importing local settings
+# import local settings, if they exist
 try:
     from settings_local import *
 except ImportError:
