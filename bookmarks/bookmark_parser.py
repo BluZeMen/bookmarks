@@ -66,5 +66,6 @@ for i in range(num_worker_threads):
 
 
 def parse_bookmark(bookmark):
+    '''Put bookmark object in parser'''
     tasks_queue.put(bookmark)
 
