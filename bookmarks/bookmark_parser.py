@@ -107,4 +107,3 @@ def parse_bookmark(bookmark):
     As argument accepts a Bookmark instance with specified url
     """
     _tasks_queue.put(bookmark)
-
