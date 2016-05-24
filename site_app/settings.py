@@ -27,11 +27,14 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
-
-ACCOUNT_ACTIVATION_DAYS = 2 # кол-во дней для хранения кода активации
+ACCOUNT_ACTIVATION_DAYS = 2  # expiration date the activation code
 AUTH_USER_EMAIL_UNIQUE = True
+REGISTRATION_AUTO_LOGIN = True
 
-SERVING_THREADS_COUNT_MAX = 2
+
+# bookmark parser settings
+PARSING_THREADS_COUNT = 3
+NUMBER_OF_TRIES_TO_PARSE = 3
 
 
 # Application definition
@@ -146,6 +149,7 @@ STATICFILES_FINDERS = (
 
 # importing local settings
 try:
-    from settings_local import *
+    from .settings_local import *
 except ImportError:
+    print('Warning: no local settings found!')
     pass

@@ -1,13 +1,20 @@
+"""Views module
+
+This module describes views
+"""
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.http.response import HttpResponseRedirect
 
-from bookmarks.forms import BookmarkCreateForm
+from .forms import BookmarkCreateForm
 from .models import Bookmark
 from .bookmark_parser import parse_bookmark
 
 
-
-class BookmarksListView(FormView):
+class BookmarksListView(LoginRequiredMixin, FormView):
+    """
+    Bookmarks main view
+    """
     template_name = 'bookmarks/list.html'
     success_url = '/'
     form_class = BookmarkCreateForm

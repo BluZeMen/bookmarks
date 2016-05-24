@@ -1,6 +1,6 @@
-anyjson==0.3.3
 beautifulsoup4==4.4.1
-billiard==3.3.0.23
 Django==1.9.5
-django-registration==2.0.4
-pytz==2016.4
+django-registration-redux==1.4
+pylint==1.5.5
+six==1.10.0
+wrapt==1.10.8

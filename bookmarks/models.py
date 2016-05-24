@@ -1,7 +1,9 @@
+"""Models module
+
+This module used for describing models
+"""
 from django.db import models
 from django.contrib.auth.models import User
-
-# Create your models here.
 
 
 class Bookmark(models.Model):
@@ -13,3 +15,8 @@ class Bookmark(models.Model):
 
     def is_parsed(self):
         return self.title is not None or self.description is not None or self.favicon is not None
+
+    def __str__(self):
+        if self.title:
+            return self.title
+        return self.url
