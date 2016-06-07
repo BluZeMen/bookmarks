@@ -9,4 +9,4 @@
 
 Пароль: 1234qwer
 
-В качестве mail-сервера можно использовать встроенный пиитоновкий smtpd: "python -m smtpd -n -c DebuggingServer localhost:1025"
+В качестве mail-сервера можно использовать встроенный питоновкий smtpd: "python -m smtpd -n -c DebuggingServer localhost:1025"
